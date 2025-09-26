@@ -1,46 +1,166 @@
-# Getting Started with Create React App
+# 花蓮互助地圖
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+一個幫助花蓮地區災後重建和資源分配的協作地圖應用。
 
-## Available Scripts
+## 功能特色
 
-In the project directory, you can run:
+- 🗺️ **互動式地圖**：使用 Leaflet.js 顯示花蓮地區地圖
+- 📍 **位置標記**：標記需要幫助的地點，支援分類標籤
+- 📦 **物資清單**：管理每個位置的物資需求
+- 📸 **圖片上傳**：上傳相關照片
+- 💬 **留言板**：即時溝通和協作
+- 🔍 **搜尋功能**：搜尋地標、分類、物資或地址
+- 📍 **地址輸入**：直接輸入地址轉換為地圖位置
+- 📍 **我的位置**：一鍵發送當前位置
+- 🏷️ **分類篩選**：按交通、住宿、物資、勞力、醫療、通訊等分類
+- ✅ **狀態管理**：進行中/已完成狀態管理
+- 📋 **已完成清單**：查看所有已完成的地標
+- 👥 **多人共編**：即時同步更新
+- 📱 **響應式設計**：支援手機和桌面裝置
 
-### `npm start`
+## 技術架構
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **前端**：React + TypeScript
+- **地圖服務**：Leaflet.js + OpenStreetMap
+- **後端**：Supabase (PostgreSQL + 即時同步)
+- **部署**：GitHub Pages
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## 快速開始
 
-### `npm test`
+### 1. 安裝依賴
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm install
+```
 
-### `npm run build`
+### 2. 設定 Supabase
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. 到 [Supabase](https://supabase.com) 建立新專案
+2. 複製 `.env.example` 為 `.env.local`
+3. 填入你的 Supabase 專案 URL 和 API Key
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 3. 設定資料庫
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+在 Supabase SQL 編輯器中執行以下 SQL：
 
-### `npm run eject`
+```sql
+-- 建立位置表格
+CREATE TABLE locations (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  position JSONB NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT '其他',
+  status TEXT DEFAULT '進行中',
+  supplies TEXT[] DEFAULT '{}',
+  images TEXT[] DEFAULT '{}',
+  messages JSONB DEFAULT '[]',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+-- 建立即時更新觸發器
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+CREATE TRIGGER update_locations_updated_at
+  BEFORE UPDATE ON locations
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+-- 設定 RLS (Row Level Security)
+ALTER TABLE locations ENABLE ROW LEVEL SECURITY;
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+-- 允許所有人讀取和寫入（公開協作）
+CREATE POLICY "Allow all operations" ON locations
+  FOR ALL USING (true) WITH CHECK (true);
+```
 
-## Learn More
+### 4. 設定 Storage
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+1. 在 Supabase 控制台建立 Storage bucket 名為 `location-images`
+2. 設定公開存取權限
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 5. 啟動開發伺服器
+
+```bash
+npm start
+```
+
+## 部署到 GitHub Pages
+
+### 1. 建立 GitHub 儲存庫
+
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/your-username/hualien-help-map.git
+git push -u origin main
+```
+
+### 2. 設定 GitHub Pages
+
+1. 到 GitHub 儲存庫的 Settings > Pages
+2. 選擇 "Deploy from a branch"
+3. 選擇 "gh-pages" 分支
+4. 設定 Source 為 "GitHub Actions"
+
+### 3. 建立部署腳本
+
+建立 `.github/workflows/deploy.yml`：
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build
+      run: npm run build
+      env:
+        REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_SUPABASE_URL }}
+        REACT_APP_SUPABASE_ANON_KEY: ${{ secrets.REACT_APP_SUPABASE_ANON_KEY }}
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build
+```
+
+## 使用方式
+
+1. **瀏覽地圖**：地圖會自動定位到花蓮市中心
+2. **新增位置**：點擊地圖上任意位置，輸入位置資訊
+3. **管理物資**：為每個位置新增需要的物資清單
+4. **上傳圖片**：為位置新增相關圖片
+5. **留言互動**：在每個位置留下訊息
+
+## 貢獻
+
+歡迎提交 Issue 和 Pull Request 來改善這個專案！
+
+## 授權
+
+MIT License
