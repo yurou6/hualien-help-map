@@ -735,6 +735,182 @@
   background-color: #f0f8f0;
 }
 
+/* 左上角頻道區按鈕樣式 */
+.floating-channel-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: #ff6b35;
+  color: white;
+  border: none;
+  padding: 20px 30px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+  z-index: 1000;
+  transition: all 0.3s ease;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.floating-channel-btn:hover {
+  background-color: #e55a2b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.5);
+  animation: none;
+}
+
+.floating-channel-btn:active {
+  transform: translateY(0);
+}
+
+/* 頻道區引導通知樣式 */
+.channel-notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.channel-notification-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease-out;
+  position: relative;
+  display: flow;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.channel-notification-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.channel-notification-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+  animation: bounce 2s infinite;
+}
+
+.channel-notification-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.channel-notification-content {
+  margin-bottom: 25px;
+}
+
+.channel-notification-content p {
+  margin: 0 0 15px 0;
+  color: #666;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.channel-notification-content ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #555;
+}
+
+.channel-notification-content li {
+  margin: 6px 0;
+  font-size: 15px;
+  display: flow;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.channel-notification-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.channel-notification-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  min-width: 140px;
+}
+
+.channel-notification-btn.primary {
+  background: #ff6b35;
+  color: white;
+}
+
+.channel-notification-btn.primary:hover {
+  background: #e55a2b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.channel-notification-btn.secondary {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.channel-notification-btn.secondary:hover {
+  background: #e0e0e0;
+  transform: translateY(-2px);
+}
+
 /* 浮動的已完成清單按鈕樣式 */
 .floating-completed-btn {
   position: absolute;
@@ -1027,6 +1203,25 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.channel-area-btn {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.channel-area-btn:hover {
+  background-color: #f57c00;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .location-error {
@@ -1849,6 +2044,18 @@
     -webkit-tap-highlight-color: transparent;
   }
   
+  .floating-channel-btn {
+    top: 10px;
+    left: 10px;
+    padding: 16px 22px;
+    font-size: 18px;
+    min-height: 50px;
+    animation: bounce 2.5s infinite;
+    /* 改善觸控體驗 */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
   .floating-completed-btn {
     top: 10px;
     right: 10px;
@@ -1858,6 +2065,42 @@
     /* 改善觸控體驗 */
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+  }
+  
+  .channel-notification-modal {
+    padding: 20px;
+    max-width: 90%;
+  }
+  
+  .channel-notification-icon {
+    font-size: 36px;
+  }
+  
+  .channel-notification-header h3 {
+    font-size: 20px;
+  }
+  
+  .channel-notification-content p {
+    font-size: 14px;
+  }
+  
+  .channel-notification-content li {
+    font-size: 13px;
+    margin: 4px 0;
+    padding: 3px 0;
+    gap: 10px;
+  }
+  
+  .channel-notification-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .channel-notification-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+    min-width: auto;
+    width: 100%;
   }
   
   /* 改善整體滑動體驗 */

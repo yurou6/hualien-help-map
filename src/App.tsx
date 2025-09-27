@@ -6,6 +6,7 @@ import './App.css';
 import SupplyList from './components/SupplyList';
 import MessageBoard from './components/MessageBoard';
 import CompletedList from './components/CompletedList';
+import ChannelArea from './components/ChannelArea';
 import { locationService, imageService, LocationMarker, LocationCategory, LocationStatus } from './lib/supabase';
 
 // 修復 Leaflet 預設圖標問題
@@ -85,6 +86,8 @@ function App() {
   const [selectedLocationImages, setSelectedLocationImages] = useState<File[]>([]);
   const [locationImagePreview, setLocationImagePreview] = useState<string[]>([]);
   const [showCompletedList, setShowCompletedList] = useState(false);
+  const [showChannelArea, setShowChannelArea] = useState(false);
+  const [showChannelBanner, setShowChannelBanner] = useState(false);
   // const [statusFilter, setStatusFilter] = useState<LocationStatus>('進行中'); // 暫時註解掉
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<LocationMarker[]>([]);
@@ -495,6 +498,14 @@ function App() {
     loadLocations();
   }, []);
 
+  // 檢查路徑，顯示頻道區引導通知
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+    if (currentPath === '/hualien-help-map') {
+      setShowChannelBanner(true);
+    }
+  }, []);
+
   // 設定即時同步
   useEffect(() => {
     const subscription = locationService.subscribeToLocations((locations) => {
@@ -568,6 +579,15 @@ function App() {
       </header>
 
       <div className="map-container">
+        {/* 左上角頻道區按鈕 */}
+        <button 
+          onClick={() => setShowChannelArea(true)}
+          className="floating-channel-btn"
+          title="頻道區"
+        >
+          📢 頻道區
+        </button>
+        
         {/* 浮動的已完成清單按鈕 */}
         <button 
           onClick={() => setShowCompletedList(true)}
@@ -1021,6 +1041,50 @@ function App() {
           }}
           onClose={() => setShowCompletedList(false)}
         />
+      )}
+
+      {/* 頻道區模態框 */}
+      {showChannelArea && (
+        <ChannelArea
+          onClose={() => setShowChannelArea(false)}
+        />
+      )}
+
+      {/* 頻道區引導通知 */}
+      {showChannelBanner && (
+        <div className="channel-notification-overlay">
+          <div className="channel-notification-modal">
+            <div className="channel-notification-header">
+              <div className="channel-notification-icon">📢</div>
+              <h3>歡迎來到花蓮互助地圖！</h3>
+            </div>
+            <div className="channel-notification-content">
+              <p>我們新增了<strong>頻道區</strong>功能，讓您可以：</p>
+              <ul>
+                <li>🆘 發布求助資訊</li>
+                <li>📢 分享最新快訊</li>
+                <li>⚠️ 發布注意事項</li>
+              </ul>
+            </div>
+            <div className="channel-notification-actions">
+              <button 
+                onClick={() => {
+                  setShowChannelArea(true);
+                  setShowChannelBanner(false);
+                }}
+                className="channel-notification-btn primary"
+              >
+                立即進入頻道區
+              </button>
+              <button 
+                onClick={() => setShowChannelBanner(false)}
+                className="channel-notification-btn secondary"
+              >
+                稍後再說
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

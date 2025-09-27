@@ -18,6 +18,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export type LocationCategory = '交通' | '住宿' | '物資' | '勞力' | '醫療' | '通訊' | '其他';
 export type LocationStatus = '進行中' | '已完成';
 
+// 頻道類型
+export type ChannelType = '求助' | '快訊' | '一般';
+export type ChannelStatus = '進行中' | '已解決' | '已過期';
+
 // 資料庫表格類型定義
 export interface LocationMarker {
   id: string;
@@ -37,6 +41,28 @@ export interface LocationMarker {
   }>;
   created_at: string;
   updated_at: string;
+}
+
+// 頻道資訊介面
+export interface ChannelInfo {
+  id: string;
+  type: ChannelType;
+  title: string;
+  content: string;
+  status: ChannelStatus;
+  priority: '低' | '中' | '高' | '緊急';
+  author: string;
+  contact: string;
+  images: string[];
+  tags: string[];
+  location?: {
+    name: string;
+    lat?: number;
+    lng?: number;
+  };
+  created_at: string;
+  updated_at: string;
+  expires_at?: string;
 }
 
 // 資料庫操作函數
@@ -174,5 +200,106 @@ export const imageService = {
       console.error('圖片刪除失敗:', error);
       return false;
     }
+  }
+};
+
+// 頻道資訊服務
+export const channelService = {
+  // 獲取所有頻道資訊
+  async getAllChannels(): Promise<ChannelInfo[]> {
+    const { data, error } = await supabase
+      .from('channels')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('獲取頻道資訊失敗:', error);
+      return [];
+    }
+
+    return data || [];
+  },
+
+  // 根據類型獲取頻道資訊
+  async getChannelsByType(type: ChannelType): Promise<ChannelInfo[]> {
+    const { data, error } = await supabase
+      .from('channels')
+      .select('*')
+      .eq('type', type)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('獲取頻道資訊失敗:', error);
+      return [];
+    }
+
+    return data || [];
+  },
+
+  // 新增頻道資訊
+  async addChannel(channel: Omit<ChannelInfo, 'id' | 'created_at' | 'updated_at'>): Promise<ChannelInfo | null> {
+    const { data, error } = await supabase
+      .from('channels')
+      .insert([channel])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('新增頻道資訊失敗:', error);
+      return null;
+    }
+
+    return data;
+  },
+
+  // 更新頻道資訊
+  async updateChannel(id: string, updates: Partial<ChannelInfo>): Promise<ChannelInfo | null> {
+    const { data, error } = await supabase
+      .from('channels')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('更新頻道資訊失敗:', error);
+      return null;
+    }
+
+    return data;
+  },
+
+  // 刪除頻道資訊
+  async deleteChannel(id: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('channels')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('刪除頻道資訊失敗:', error);
+      return false;
+    }
+
+    return true;
+  },
+
+  // 訂閱頻道變更（即時更新）
+  subscribeToChannels(callback: (channels: ChannelInfo[]) => void) {
+    return supabase
+      .channel('channels_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'channels'
+        },
+        async () => {
+          const channels = await this.getAllChannels();
+          callback(channels);
+        }
+      )
+      .subscribe();
   }
 };
