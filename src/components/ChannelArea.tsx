@@ -12,6 +12,7 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingChannel, setEditingChannel] = useState<ChannelInfo | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<ChannelInfo>>({});
   const [activeTab, setActiveTab] = useState<ChannelType>('求助');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -162,8 +163,6 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
     e.preventDefault();
     if (!editingChannel) return;
     
-    const formData = new FormData(e.currentTarget);
-    
     // 處理圖片上傳
     let newImageUrls: string[] = [];
     if (selectedImages.length > 0) {
@@ -183,20 +182,7 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
     }
 
     const updatedData: Partial<ChannelInfo> = {
-      type: formData.get('type') as ChannelType,
-      title: formData.get('title') as string,
-      content: formData.get('content') as string,
-      status: formData.get('status') as ChannelStatus,
-      priority: formData.get('priority') as '低' | '中' | '高' | '緊急',
-      author: formData.get('author') as string,
-      contact: formData.get('contact') as string,
-      tags: (formData.get('tags') as string).split(',').map(tag => tag.trim()).filter(tag => tag),
-      location: formData.get('locationName') ? {
-        name: formData.get('locationName') as string,
-        lat: formData.get('locationLat') ? parseFloat(formData.get('locationLat') as string) : undefined,
-        lng: formData.get('locationLng') ? parseFloat(formData.get('locationLng') as string) : undefined
-      } : undefined,
-      expires_at: (formData.get('expiresAt') as string) || undefined,
+      ...editFormData,
       images: newImageUrls.length > 0 ? [...editingChannel.images, ...newImageUrls] : editingChannel.images
     };
 
@@ -206,6 +192,7 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
         setChannels(channels.map(c => c.id === editingChannel.id ? updatedChannel : c));
         setShowEditForm(false);
         setEditingChannel(null);
+        setEditFormData({});
         setSelectedImages([]);
         setImagePreview([]);
         alert('頻道更新成功！');
@@ -219,6 +206,18 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
   // 開始編輯
   const startEdit = (channel: ChannelInfo) => {
     setEditingChannel(channel);
+    setEditFormData({
+      type: channel.type,
+      title: channel.title,
+      content: channel.content,
+      status: channel.status,
+      priority: channel.priority,
+      author: channel.author,
+      contact: channel.contact,
+      tags: channel.tags,
+      location: channel.location,
+      expires_at: channel.expires_at
+    });
     setShowEditForm(true);
     setSelectedChannel(null);
   };
@@ -498,32 +497,46 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
                 type="text"
                 name="title"
                 placeholder="標題"
-                defaultValue={editingChannel.title}
+                value={editFormData.title || ''}
+                onChange={(e) => setEditFormData({...editFormData, title: e.target.value})}
                 required
               />
               
               <textarea
                 name="content"
                 placeholder="詳細內容"
-                defaultValue={editingChannel.content}
+                value={editFormData.content || ''}
+                onChange={(e) => setEditFormData({...editFormData, content: e.target.value})}
                 required
               />
 
               <div className="form-row">
-                <select name="type" defaultValue={editingChannel.type}>
+                <select 
+                  name="type" 
+                  value={editFormData.type || '求助'}
+                  onChange={(e) => setEditFormData({...editFormData, type: e.target.value as ChannelType})}
+                >
                   <option value="求助">求助</option>
                   <option value="快訊">快訊</option>
                   <option value="注意事項">注意事項</option>
                 </select>
 
-                <select name="priority" defaultValue={editingChannel.priority}>
+                <select 
+                  name="priority" 
+                  value={editFormData.priority || '低'}
+                  onChange={(e) => setEditFormData({...editFormData, priority: e.target.value as '低' | '中' | '高' | '緊急'})}
+                >
                   <option value="低">🟢 低</option>
                   <option value="中">🟡 中</option>
                   <option value="高">🔴 高</option>
                   <option value="緊急">🚨 緊急</option>
                 </select>
 
-                <select name="status" defaultValue={editingChannel.status}>
+                <select 
+                  name="status" 
+                  value={editFormData.status || '進行中'}
+                  onChange={(e) => setEditFormData({...editFormData, status: e.target.value as ChannelStatus})}
+                >
                   <option value="進行中">🟢 進行中</option>
                   <option value="已解決">✅ 已解決</option>
                   <option value="已過期">⏰ 已過期</option>
@@ -535,14 +548,16 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
                   type="text"
                   name="author"
                   placeholder="發布者"
-                  defaultValue={editingChannel.author}
+                  value={editFormData.author || ''}
+                  onChange={(e) => setEditFormData({...editFormData, author: e.target.value})}
                   required
                 />
                 <input
                   type="text"
                   name="contact"
                   placeholder="聯絡方式"
-                  defaultValue={editingChannel.contact}
+                  value={editFormData.contact || ''}
+                  onChange={(e) => setEditFormData({...editFormData, contact: e.target.value})}
                   required
                 />
               </div>
@@ -551,7 +566,8 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
                 type="text"
                 name="tags"
                 placeholder="標籤 (用逗號分隔)"
-                defaultValue={editingChannel.tags.join(', ')}
+                value={editFormData.tags?.join(', ') || ''}
+                onChange={(e) => setEditFormData({...editFormData, tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag)})}
               />
 
               <div className="form-row">
@@ -559,21 +575,24 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
                   type="text"
                   name="locationName"
                   placeholder="地點名稱"
-                  defaultValue={editingChannel.location?.name || ''}
+                  value={editFormData.location?.name || ''}
+                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, name: e.target.value}})}
                 />
                 <input
                   type="number"
                   name="locationLat"
                   placeholder="緯度"
                   step="any"
-                  defaultValue={editingChannel.location?.lat || ''}
+                  value={editFormData.location?.lat || ''}
+                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, lat: parseFloat(e.target.value) || undefined}})}
                 />
                 <input
                   type="number"
                   name="locationLng"
                   placeholder="經度"
                   step="any"
-                  defaultValue={editingChannel.location?.lng || ''}
+                  value={editFormData.location?.lng || ''}
+                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, lng: parseFloat(e.target.value) || undefined}})}
                 />
               </div>
 
@@ -581,7 +600,8 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
                 type="datetime-local"
                 name="expiresAt"
                 placeholder="過期時間"
-                defaultValue={editingChannel.expires_at ? new Date(editingChannel.expires_at).toISOString().slice(0, 16) : ''}
+                value={editFormData.expires_at ? new Date(editFormData.expires_at).toISOString().slice(0, 16) : ''}
+                onChange={(e) => setEditFormData({...editFormData, expires_at: e.target.value || undefined})}
               />
 
               <div className="image-upload-section">
