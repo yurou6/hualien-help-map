@@ -803,6 +803,69 @@
   100% { transform: rotate(360deg); }
 }
 
+/* 編輯頻道按鈕樣式 */
+.edit-actions {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.edit-channel-btn {
+  background: #ff6b35;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-channel-btn:hover {
+  background: #e55a2b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* 編輯頻道模態框樣式 */
+.edit-channel-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.edit-channel-modal .modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease-out;
+}
+
+.edit-channel-modal h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
 /* 響應式設計 */
 @media (max-width: 768px) {
   .channel-area {
@@ -852,6 +915,16 @@
   
   .channel-list {
     padding: 15px;
+  }
+  
+  .edit-channel-modal .modal-content {
+    padding: 20px;
+    max-width: 95%;
+  }
+  
+  .edit-channel-btn {
+    padding: 8px 16px;
+    font-size: 12px;
   }
   
   .channel-item {

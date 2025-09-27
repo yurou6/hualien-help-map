@@ -501,7 +501,7 @@ function App() {
   // 檢查路徑，顯示頻道區引導通知
   useEffect(() => {
     const currentPath = window.location.pathname;
-    if (currentPath === '/hualien-help-map') {
+    if (currentPath === '/hualien-help-map' || currentPath === '/hualien-help-map/') {
       setShowChannelBanner(true);
     }
   }, []);

@@ -10,6 +10,8 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
   const [channels, setChannels] = useState<ChannelInfo[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<ChannelInfo | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingChannel, setEditingChannel] = useState<ChannelInfo | null>(null);
   const [activeTab, setActiveTab] = useState<ChannelType>('求助');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -153,6 +155,72 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
       console.error('更新狀態失敗:', error);
       alert('更新狀態失敗，請重試');
     }
+  };
+
+  // 處理編輯頻道
+  const handleEditChannel = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingChannel) return;
+    
+    const formData = new FormData(e.currentTarget);
+    
+    // 處理圖片上傳
+    let newImageUrls: string[] = [];
+    if (selectedImages.length > 0) {
+      try {
+        const uploadPromises = selectedImages.map(async (file, index) => {
+          const channelId = `channel-${editingChannel.id}-${Date.now()}-${index}`;
+          return await imageService.uploadImage(file, channelId);
+        });
+        
+        const uploadResults = await Promise.all(uploadPromises);
+        newImageUrls = uploadResults.filter((url): url is string => url !== null);
+      } catch (error) {
+        console.error('圖片上傳失敗:', error);
+        alert('圖片上傳失敗，請重試');
+        return;
+      }
+    }
+
+    const updatedData: Partial<ChannelInfo> = {
+      type: formData.get('type') as ChannelType,
+      title: formData.get('title') as string,
+      content: formData.get('content') as string,
+      status: formData.get('status') as ChannelStatus,
+      priority: formData.get('priority') as '低' | '中' | '高' | '緊急',
+      author: formData.get('author') as string,
+      contact: formData.get('contact') as string,
+      tags: (formData.get('tags') as string).split(',').map(tag => tag.trim()).filter(tag => tag),
+      location: formData.get('locationName') ? {
+        name: formData.get('locationName') as string,
+        lat: formData.get('locationLat') ? parseFloat(formData.get('locationLat') as string) : undefined,
+        lng: formData.get('locationLng') ? parseFloat(formData.get('locationLng') as string) : undefined
+      } : undefined,
+      expires_at: (formData.get('expiresAt') as string) || undefined,
+      images: newImageUrls.length > 0 ? [...editingChannel.images, ...newImageUrls] : editingChannel.images
+    };
+
+    try {
+      const updatedChannel = await channelService.updateChannel(editingChannel.id, updatedData);
+      if (updatedChannel) {
+        setChannels(channels.map(c => c.id === editingChannel.id ? updatedChannel : c));
+        setShowEditForm(false);
+        setEditingChannel(null);
+        setSelectedImages([]);
+        setImagePreview([]);
+        alert('頻道更新成功！');
+      }
+    } catch (error) {
+      console.error('更新頻道失敗:', error);
+      alert('更新頻道失敗，請重試');
+    }
+  };
+
+  // 開始編輯
+  const startEdit = (channel: ChannelInfo) => {
+    setEditingChannel(channel);
+    setShowEditForm(true);
+    setSelectedChannel(null);
   };
 
   // 篩選頻道
@@ -420,6 +488,152 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
         </div>
       )}
 
+      {/* 編輯頻道表單 */}
+      {showEditForm && editingChannel && (
+        <div className="edit-channel-modal">
+          <div className="modal-content">
+            <h3>編輯{editingChannel.type === '求助' ? '求助資訊' : editingChannel.type === '快訊' ? '快訊資訊' : '注意事項資訊'}</h3>
+            <form onSubmit={handleEditChannel}>
+              <input
+                type="text"
+                name="title"
+                placeholder="標題"
+                defaultValue={editingChannel.title}
+                required
+              />
+              
+              <textarea
+                name="content"
+                placeholder="詳細內容"
+                defaultValue={editingChannel.content}
+                required
+              />
+
+              <div className="form-row">
+                <select name="type" defaultValue={editingChannel.type}>
+                  <option value="求助">求助</option>
+                  <option value="快訊">快訊</option>
+                  <option value="注意事項">注意事項</option>
+                </select>
+
+                <select name="priority" defaultValue={editingChannel.priority}>
+                  <option value="低">🟢 低</option>
+                  <option value="中">🟡 中</option>
+                  <option value="高">🔴 高</option>
+                  <option value="緊急">🚨 緊急</option>
+                </select>
+
+                <select name="status" defaultValue={editingChannel.status}>
+                  <option value="進行中">🟢 進行中</option>
+                  <option value="已解決">✅ 已解決</option>
+                  <option value="已過期">⏰ 已過期</option>
+                </select>
+              </div>
+
+              <div className="form-row">
+                <input
+                  type="text"
+                  name="author"
+                  placeholder="發布者"
+                  defaultValue={editingChannel.author}
+                  required
+                />
+                <input
+                  type="text"
+                  name="contact"
+                  placeholder="聯絡方式"
+                  defaultValue={editingChannel.contact}
+                  required
+                />
+              </div>
+
+              <input
+                type="text"
+                name="tags"
+                placeholder="標籤 (用逗號分隔)"
+                defaultValue={editingChannel.tags.join(', ')}
+              />
+
+              <div className="form-row">
+                <input
+                  type="text"
+                  name="locationName"
+                  placeholder="地點名稱"
+                  defaultValue={editingChannel.location?.name || ''}
+                />
+                <input
+                  type="number"
+                  name="locationLat"
+                  placeholder="緯度"
+                  step="any"
+                  defaultValue={editingChannel.location?.lat || ''}
+                />
+                <input
+                  type="number"
+                  name="locationLng"
+                  placeholder="經度"
+                  step="any"
+                  defaultValue={editingChannel.location?.lng || ''}
+                />
+              </div>
+
+              <input
+                type="datetime-local"
+                name="expiresAt"
+                placeholder="過期時間"
+                defaultValue={editingChannel.expires_at ? new Date(editingChannel.expires_at).toISOString().slice(0, 16) : ''}
+              />
+
+              <div className="image-upload-section">
+                <label htmlFor="edit-images">新增圖片：</label>
+                <input
+                  id="edit-images"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                />
+              </div>
+
+              {imagePreview.length > 0 && (
+                <div className="image-preview-container">
+                  <p className="preview-label">預覽圖片：</p>
+                  <div className="image-preview-list">
+                    {imagePreview.map((preview, index) => (
+                      <div key={index} className="image-preview-item">
+                        <img src={preview} alt={`預覽 ${index + 1}`} className="preview-image" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="remove-image-btn"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="form-actions">
+                <button type="submit">更新資訊</button>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setShowEditForm(false);
+                    setEditingChannel(null);
+                    setSelectedImages([]);
+                    setImagePreview([]);
+                  }}
+                >
+                  取消
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* 頻道詳情 */}
       {selectedChannel && (
         <div className="channel-details">
@@ -530,6 +744,14 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
                       {statusConfig[status].icon} {status}
                     </button>
                   ))}
+                </div>
+                <div className="edit-actions">
+                  <button 
+                    onClick={() => startEdit(selectedChannel)}
+                    className="edit-channel-btn"
+                  >
+                    ✏️ 編輯資訊
+                  </button>
                 </div>
               </div>
             </div>
