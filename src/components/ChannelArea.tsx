@@ -584,7 +584,7 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
                   placeholder="緯度"
                   step="any"
                   value={editFormData.location?.lat || ''}
-                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, lat: parseFloat(e.target.value) || undefined}})}
+                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, name: editFormData.location?.name || '', lat: parseFloat(e.target.value) || undefined}})}
                 />
                 <input
                   type="number"
@@ -592,7 +592,7 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
                   placeholder="經度"
                   step="any"
                   value={editFormData.location?.lng || ''}
-                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, lng: parseFloat(e.target.value) || undefined}})}
+                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, name: editFormData.location?.name || '', lng: parseFloat(e.target.value) || undefined}})}
                 />
               </div>
 
