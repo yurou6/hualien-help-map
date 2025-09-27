@@ -738,24 +738,28 @@
 /* 左上角頻道區按鈕樣式 */
 .floating-channel-btn {
   position: absolute;
-  top: 20px;
+  top: 180px;
   left: 20px;
   background-color: #ff6b35;
   color: white;
   border: none;
-  padding: 20px 30px;
-  border-radius: 50px;
+  padding: 15px 20px;
+  border-radius: 18px;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: bold;
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
   z-index: 1000;
   transition: all 0.3s ease;
-  min-height: 60px;
+  min-height: 80px;
+  min-width: 80px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   animation: bounce 2s infinite;
+  line-height: 1;
+  gap: 2px;
 }
 
 @keyframes bounce {
@@ -2047,10 +2051,13 @@
   .floating-channel-btn {
     top: 10px;
     left: 10px;
-    padding: 16px 22px;
-    font-size: 18px;
-    min-height: 50px;
+    padding: 8px 6px;
+    font-size: 14px;
+    min-height: 60px;
+    min-width: 60px;
     animation: bounce 2.5s infinite;
+    line-height: 1;
+    gap: 1px;
     /* 改善觸控體驗 */
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
