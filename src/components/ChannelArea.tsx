@@ -518,7 +518,7 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
                 >
                   <option value="求助">求助</option>
                   <option value="快訊">快訊</option>
-                  <option value="注意事項">注意事項</option>
+                  <option value="一般">注意事項</option>
                 </select>
 
                 <select 
@@ -576,7 +576,7 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
                   name="locationName"
                   placeholder="地點名稱"
                   value={editFormData.location?.name || ''}
-                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, name: e.target.value}})}
+                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, name: e.target.value || '', lat: editFormData.location?.lat, lng: editFormData.location?.lng}})}
                 />
                 <input
                   type="number"
@@ -584,7 +584,7 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
                   placeholder="緯度"
                   step="any"
                   value={editFormData.location?.lat || ''}
-                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, name: editFormData.location?.name || '', lat: parseFloat(e.target.value) || undefined}})}
+                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, name: editFormData.location?.name || '', lat: parseFloat(e.target.value) || undefined, lng: editFormData.location?.lng}})}
                 />
                 <input
                   type="number"
@@ -592,7 +592,7 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
                   placeholder="經度"
                   step="any"
                   value={editFormData.location?.lng || ''}
-                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, name: editFormData.location?.name || '', lng: parseFloat(e.target.value) || undefined}})}
+                  onChange={(e) => setEditFormData({...editFormData, location: {...editFormData.location, name: editFormData.location?.name || '', lat: editFormData.location?.lat, lng: parseFloat(e.target.value) || undefined}})}
                 />
               </div>
 
