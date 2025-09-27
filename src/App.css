@@ -738,7 +738,7 @@
 /* 左上角頻道區按鈕樣式 */
 .floating-channel-btn {
   position: absolute;
-  top: 180px;
+  top: 10px;
   left: 20px;
   background-color: #ff6b35;
   color: white;
