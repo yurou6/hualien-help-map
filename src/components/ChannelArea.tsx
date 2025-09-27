@@ -653,7 +653,13 @@ const ChannelArea: React.FC<ChannelAreaProps> = ({ onClose }) => {
               </div>
               
               <h3>{selectedChannel.title}</h3>
-              <p className="channel-details-content">{selectedChannel.content}</p>
+              <div className="channel-details-content">
+                {selectedChannel.content.split('\n').map((line, index) => (
+                  <p key={index} style={{ margin: '0 0 8px 0' }}>
+                    {line}
+                  </p>
+                ))}
+              </div>
               
               <div className="channel-details-meta">
                 <div className="meta-item">
